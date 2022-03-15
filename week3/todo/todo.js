@@ -4,7 +4,7 @@ import { todoItemProjector }        from "./todoProjector.js";
 import { Scheduler }                from "../dataflow/dataflow.js";
 import { fortuneService }           from "./fortuneService.js";
 
-export { TodoController, TodoItemsView, TodoTotalView, TodoOpenView}
+export { TodoController, TodoItemsView, TodoTotalView, TodoOpenView, ProgressView}
 
 const TodoController = () => {
 
@@ -19,14 +19,14 @@ const TodoController = () => {
         doneAttr.getObs(VALUE).onChange( isDone => textAttr.getObs("EDITABLE",!isDone).setValue(!isDone));
 
         return {
-            getDone:            doneAttr.getObs(VALUE).getValue,
-            setDone:            doneAttr.getObs(VALUE).setValue,
-            onDoneChanged:      doneAttr.getObs(VALUE).onChange,
-            getText:            textAttr.getObs(VALUE).getValue,
-            setText:            textAttr.setConvertedValue,
-            onTextChanged:      textAttr.getObs(VALUE).onChange,
-            onTextValidChanged: textAttr.getObs(VALID).onChange,
-            onTextEditableChanged: textAttr.getObs("EDITABLE").onChange,
+            getDone:                doneAttr.getObs(VALUE).getValue,
+            setDone:                doneAttr.getObs(VALUE).setValue,
+            onDoneChanged:          doneAttr.getObs(VALUE).onChange,
+            getText:                textAttr.getObs(VALUE).getValue,
+            setText:                textAttr.setConvertedValue,
+            onTextChanged:          textAttr.getObs(VALUE).onChange,
+            onTextValidChanged:     textAttr.getObs(VALID).onChange,
+            onTextEditableChanged:  textAttr.getObs("EDITABLE").onChange,
         }
     };
 
@@ -53,14 +53,14 @@ const TodoController = () => {
     };
 
     return {
-        numberOfTodos:      todoModel.count,
-        numberOfopenTasks:  () => todoModel.countIf( todo => ! todo.getDone() ),
-        addTodo:            addTodo,
-        addFortuneTodo:     addFortuneTodo,
-        removeTodo:         todoModel.del,
-        onTodoAdd:          todoModel.onAdd,
-        onTodoRemove:       todoModel.onDel,
-        removeTodoRemoveListener: todoModel.removeDeleteListener, // only for the test case, not used below
+        numberOfTodos:              todoModel.count,
+        numberOfopenTasks:          () => todoModel.countIf( todo => ! todo.getDone() ),
+        addTodo:                    addTodo,
+        addFortuneTodo:             addFortuneTodo,
+        removeTodo:                 todoModel.del,
+        onTodoAdd:                  todoModel.onAdd,
+        onTodoRemove:               todoModel.onDel,
+        removeTodoRemoveListener:   todoModel.removeDeleteListener, // only for the test case, not used below
     }
 };
 
@@ -97,6 +97,24 @@ const TodoOpenView = (todoController, numberOfOpenTasksElement) => {
 
     // binding
 
+    todoController.onTodoAdd(todo => {
+        render();
+        todo.onDoneChanged(render);
+    });
+    todoController.onTodoRemove(render);
+};
+
+const ProgressView = (todoController, progressElement) => {
+
+    const render = () => {
+        const prog = Math.abs(((todoController.numberOfopenTasks() / todoController.numberOfTodos() * 100) - 100)).toFixed(2);
+        if (prog !== 'NaN'){    //.toFixed returns string, therefor NaN has to be tested against string version
+            progressElement.setAttribute("style","width:" + prog + "%");
+            progressText.innerText = "" + prog + "%";
+        }
+    }
+
+    // binding
     todoController.onTodoAdd(todo => {
         render();
         todo.onDoneChanged(render);

@@ -45,3 +45,17 @@ input[type=text]:focus {
 input.invalid {
     color: red;
 }
+
+.progressbar {
+    background: lightgrey;
+}
+
+#progress {
+    background: #3dc13d;
+    width: 0;
+}
+
+#progressText {
+    margin: auto;
+    display: table;
+}
